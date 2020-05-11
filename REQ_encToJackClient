@@ -1,0 +1,34 @@
+top level reqs
+--------------
+the executable shall read values from encoder(s).
+the exec shall print the encoder values to stdout
+the exec shall act as a jack client
+the exec shall convert the encoder values to MIDI msgs
+the exec shall push the midi msgs to a jack server
+the exec shall be configurable through cli args
+
+the exec should not require to store any values in cfg file for next run
+
+input args reqs
+---------------
+-g gpioEncA,gpioEncB: gpio numbers for the pairs of encA, encB connections. 
+    one pair per encoder. This options should be allowed multiple times
+-c ctrl#: controller number. corresponds to -g. for each -g there should be a -c.
+-n jackname: name of jack client
+-p <no arg>: print to stdout instead of loading the jack client (the 2 are mut.ex.)
+
+
+operational reqs
+----------------
+-the exec shall be started with some cli args
+-the exec shall be closed gracefully through a SIGTERM signal
+
+typical midi msg to be assembled
+----------------
+CC (control change) msgs: 
+	"b0 68 63 : control change (channel 0): ctrl 104, value  99"
+	"b0 68 64 : control change (channel 0): ctrl 104, value 100"
+	0xb0 : control change midi event, at channel 0
+	0x68 : ctrl # (dec=104)
+	0x63 : value # (decimal=99) 
+
