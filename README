@@ -1,103 +1,38 @@
-encoder datasheet (from GRobotronics)
------------------
-EC12E20-24P24C-SW.pdf
-https://grobotronics.com/rotary-encoder-12mm-24p-r-with-switch.html
-
-usual connectivity
-------------------
-http://community.axoloti.com/t/rotary-encoders/2681
-
-basically: 
-1. hold encoder in front of your eyes with the 3 pins side facing down.
-   Then the 3 pins from left to right are A , C , B . 
-   A = signal 1 
-   C = common
-   B = signal 2
-   On the top side are 2 more pins S1 and S2. These are for the push button switch.
-
-2.Connections
-               ______________
-              |              |
-   ---------A-|              |
-   |          |              |-S1----------------- SW (push button)
-   |     ---C-|              |
-   |     |    |              |-S2--  -------------- CLK (signal A)
-   |  ---|--B-|              |    |  |
-   |  |  |    |______________|    |  |  ----------- DT (signal B)
-   |  |  |                        |  |  |
-   |  |  -------------------------*--|--|---------- GND
-   |  |                              |  |
-   |  -------------------------------|--*--10K--*-- +3V3
-   |                                 |          |
-   ----------------------------------*----10K----
-
-resistors
----------
-https://raspberrypi.stackexchange.com/a/39314/113877
-
-They can be omitted since rpi3b+ model has configurable pull up / pull down 
-internal resistors for almost all pins! Only I2C pins (SDA,SCL are permanently pulled up)
-
-So:  should connect SW, CLK and DT to 3 GPIOs configured to be pulled up!
-
-development:
+Description
 -----------
-https://www.raspberrypi.org/documentation/usage/gpio/
+a Raspberry Pi 3B+ userspace app to listen to rotary encoder msgs on GPIO pins, convert them to MIDI msgs and push them through JACK (audio connection toolkit) 
 
-c/c++ : libgpiod or (3rd party) pigpio
-python: pigpio , gpiozero
+Build
+-----
+you can build it directly in Raspberry Pi
 
-if using then here is some minimal C/C++ code examples
-http://abyz.me.uk/rpi/pigpio/examples.html#Misc_code
+	sudo apt install cmake jack pigpio libjack-jackd2-dev libgpiod-dev libpigpio1 libpigpiod-if-dev libpigpiod-if2-1 pigpio-tools pigpiod #maybe some could be skipped
+	git clone ...	# this repo
+	cd rpiEncoderController
+	mkdir build && cd build
+	cmake -DCMAKE_BUILD_TYPE=Debug ../encoderController
+	make
 
-to build libgpiod using tag v.1.4.2 did not work for me but the tar of the same version did.
-https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
 
-kernel encoder driver:
-https://www.kernel.org/doc/html/v4.16/input/devices/rotary-encoder.html
+Or you can build using a cross-compile toolchain. For Rasbian Buster I used https://github.com/Pro/raspi-toolchain. You will also need the rootfs with all the packages mentioned above. Then you can update rpienv.sh to point to the location of the rootfs subfolders and
 
-pinout:
-------
-https://pinout.xyz/#
-also "pinout" cli cmd , to view gpio pin layout in cli
-can also change pin names in gpioinfo, see :
-https://microhobby.com.br/blog/2020/02/02/new-linux-kernel-5-5-new-interfaces-in-gpiolib/
+	source rpienv.sh
+	mkdir build && cd build
+	cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=rpi3toolchain.cmake ../encoderController
+	make
 
-test1 - connect single encoder:
-------------------------------
-connect GND to pins 9 & 14 (pin 1 is 3v3 and pin 2 is 5v just for ref)
-connect ENC A & B to pin 11 & 13 (GPIO: BCM 17 & 27)
-connect push BUTTON to pin 15 (GPIO: BCM 22)
+Please note that you will need to go through these files and update sevral paths for the above to work.
 
-enable GPIO 17,27,22 as pull up
-(https://raspberrypi.stackexchange.com/a/36582/113877)
-basically :
-	gpio -g mode 22 up
-check all pin states with 
-	gpio -g readall
-finally monitor some triggers on the pins while playing with the encoder using
-	gpiomon -n 100 gpiochip0 17 27 22
 
-NOTE: it seems you cannot set pull up states from cli , using gpioset. But you
-should be able to through some code. BUT:
-https://microhobby.com.br/blog/2020/02/02/new-linux-kernel-5-5-new-interfaces-in-gpiolib/
-with libgpiod v1.5 and kernel >=5.5 the option -B enables setting pull-up/down
-state of the input, thus allows using gpiomon fully.
+Usage
+-----
 
-this is a python example using the kernel rotary encoder driver:
-https://blog.ploetzli.ch/2018/ky-040-rotary-encoder-linux-raspberry-pi/
+Please run ./encoderController -h for an explanation of the available options. A typical command invokation would be:
 
-Task breakdown:
---------------
-1. find c code that reads from encoder. 
-   notes: not sure which lib to prefer libgpiod, pigpio, ... ? Hmmm maybe use
-libgpiod which is more basic/closer to kernel provided stuff
-2. read up on jack header and find how to generate midi messages
-3. incorporate midi messages generation lib
-4. include jack midi to push the midi messages through jack 
+	sudo pigpiod    #start the pigpio daemon
+	./encoderController -c 64,43 -t
 
-encoderController:
------------------
-enc1: pins 11,13,15(button) - BCM 17,27,22
-enc2: pins 16,18,22(button) - BCM 23,24,25 #CAUTION not adjacent !!!
-enc3: pins 29,31,36(button) - BCM 05,06,16 #CAUTION not adjacent, not even on same side !!!
+So the rotary encoder will be sending CC (controller change midi msgs) through controller # 64 , while the button on the rotary encoder will be sending CC midi msg through controller # 43.
+
+The GPIO's used for the single encoder are numbers 17 and 27 (for the encoder) and 22 (for the button). These by the way are the Broadcom numbers for the GPIO's and the actual pcb numbering. Please refer to https://pinout.xyz/# for correspondense and look at REQ_encToJackClient for pin numbers of the other encoders (up to 3). You can  recompile the executable to change the GPIO pins that the app listens to.
+
