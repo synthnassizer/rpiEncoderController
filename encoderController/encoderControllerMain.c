@@ -258,7 +258,7 @@ static int sanityChecks(const uint8_t encMidiCtrlCounter, const uint8_t encMidiC
         return -1;
     }
 
-    if (encMidiCtrlCounter != encMidiCtrlValueCounter) {
+    if ((0u < encMidiCtrlValueCounter) && (encMidiCtrlCounter != encMidiCtrlValueCounter)) {
         fprintf(stderr,"ERROR: Midi controller and controller value assignments do not match\n\n");
         print_usage();
         return -1;
