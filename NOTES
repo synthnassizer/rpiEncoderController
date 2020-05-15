@@ -98,6 +98,6 @@ libgpiod which is more basic/closer to kernel provided stuff
 
 encoderController:
 -----------------
-enc1: pins 11,13,15(button) - BCM 17,27,22
-enc2: pins 16,18,22(button) - BCM 23,24,25 #CAUTION not adjacent !!!
-enc3: pins 29,31,36(button) - BCM 05,06,16 #CAUTION not adjacent, not even on same side !!!
+enc1: pins 15,13,11(button) - BCM 22,27,17
+enc2: pins 22,18,16(button) - BCM 25,24,23 #CAUTION not adjacent !!!
+enc3: pins 37,36,31(button) - BCM 26,16,06 #CAUTION not adjacent, not even on same side !!!

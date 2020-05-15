@@ -25,15 +25,15 @@
 #define MIDI_MAX_CHANNEL     (  15u)
 
 //BCM numbers of pins
-#define ENC_BCM_PIN_1A       (17u) //pin # 11
+#define ENC_BCM_PIN_1A       (22u) //pin # 15
 #define ENC_BCM_PIN_1B       (27u) //pin # 13
-#define ENC_BCM_PIN_1Button  (22u) //pin # 15
-#define ENC_BCM_PIN_2A       (23u) //pin # 16
+#define ENC_BCM_PIN_1Button  (17u) //pin # 11
+#define ENC_BCM_PIN_2A       (25u) //pin # 22
 #define ENC_BCM_PIN_2B       (24u) //pin # 18
-#define ENC_BCM_PIN_2Button  (25u) //pin # 22
-#define ENC_BCM_PIN_3A       (05u) //pin # 29
-#define ENC_BCM_PIN_3B       (06u) //pin # 31
-#define ENC_BCM_PIN_3Button  (16u) //pin # 36
+#define ENC_BCM_PIN_2Button  (23u) //pin # 16
+#define ENC_BCM_PIN_3A       (26u) //pin # 37
+#define ENC_BCM_PIN_3B       (16u) //pin # 36
+#define ENC_BCM_PIN_3Button  (06u) //pin # 31
 
 #define ENC_TRIPLET_INITIALIZER(A,B,BUTTON) { .gpioA = A , .gpioB = B , .gpioButton = BUTTON }
 #define ENC_ENCODER_VALUE_INITIALIZER { .encoder = 0x0 , .encoderLow = MIDI_CTRL_MIN_VALUE , .encoderHigh = MIDI_CTRL_MAX_VALUE , .button = 0x0 }
