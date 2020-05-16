@@ -59,13 +59,13 @@ static void triggerShutdown(int /*sig*/);
 static void print_usage();
 static void setupSignals();
 static int inits(rec_t ** encoder, int * piGpio, const char * host, const char * port,
-    const char * jackName, const uint8_t encMidiCtrlCounter, const int step);
+    const char * jackName, const uint8_t encMidiCtrlCounter, const int step, const unsigned glitch);
 static void shutdowns(rec_t ** encoder, int piGpio, const uint8_t encMidiCtrlCounter);
 static int sanityChecks(const uint8_t encMidiCtrlCounter, const uint8_t encMidiCtrlValueCounter,
     const uint8_t encMidiChannel);
 static int parseArgs(const int argc, char **argv, uint8_t * encMidiCtrlCounter,
     uint8_t * encMidiCtrlValueCounter, uint8_t * encMidiChannel, bool * printToStdOut,
-    const char ** jackName, const char ** host, const char ** port, int * step);
+    const char ** jackName, const char ** host, const char ** port, int * step, unsigned * glitch);
 
 /* variables */
 bool keepRunning = true;
@@ -93,9 +93,10 @@ int main(int argc, char **argv)
     const char * port = DEFAULT_PIGPIOD_PORT;
     int step = 1;
     int piGpio = 0;
+    unsigned glitch = DEFAULT_STEADY_TIME;
 
     if (0 != parseArgs(argc, argv, &encMidiCtrlCounter, &encMidiCtrlValueCounter,
-        &encMidiChannel, &printToStdOut, &jackName, &host, &port, &step)) {
+        &encMidiChannel, &printToStdOut, &jackName, &host, &port, &step, &glitch)) {
         return -1;
     }
 
@@ -104,7 +105,7 @@ int main(int argc, char **argv)
     }
 
 
-    if (0 != inits(encoder, &piGpio, host, port, jackName, encMidiCtrlCounter, step)) {
+    if (0 != inits(encoder, &piGpio, host, port, jackName, encMidiCtrlCounter, step, glitch)) {
         return -1;
     }
 
@@ -120,7 +121,7 @@ int main(int argc, char **argv)
 
 static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
     uint8_t * encMidiCtrlValueCounter, uint8_t * encMidiChannel, bool * printToStdOut,
-    const char ** jackName, const char ** host, const char ** port, int * step)
+    const char ** jackName, const char ** host, const char ** port, int * step, unsigned * glitch)
 {
     int argn = 1;
 
@@ -171,6 +172,9 @@ static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
         } else if ( strcmp( argv[argn], "-e" ) == 0 && argn + 1 < argc ) {
             ++argn;
             *step = atoi(argv[argn]);
+        } else if ( strcmp( argv[argn], "-g" ) == 0 && argn + 1 < argc ) {
+            ++argn;
+            *glitch = (unsigned)atoi(argv[argn]);
         } else if ( strcmp( argv[argn], "-h" ) == 0 && argn + 1 < argc ) {
             ++argn;
             *encMidiChannel = atoi(argv[argn]);
@@ -201,7 +205,7 @@ static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
 }
 
 static int inits(rec_t ** encoder, int * piGpio, const char * host, const char * port,
-    const char * jackName, const uint8_t encMidiCtrlCounter, const int step)
+    const char * jackName, const uint8_t encMidiCtrlCounter, const int step, const unsigned glitch)
 {
     *piGpio = recPigpioConnect(host, port); 
     if (*piGpio < 0) {
@@ -215,7 +219,7 @@ static int inits(rec_t ** encoder, int * piGpio, const char * host, const char *
     }
 
     for (unsigned i = 0u; i < encMidiCtrlCounter; ++i) {
-        encoder[i] = recInit(*piGpio, &encoderPins[i], i, step, callbackEncoder, callbackButton);
+        encoder[i] = recInit(*piGpio, &encoderPins[i], i, step, glitch, callbackEncoder, callbackButton);
     }
 
     setupSignals();
@@ -327,6 +331,7 @@ static void print_usage()
             "\t                Default Value range [-128,+127].\n"
             "\t-h <channel>  : midi channel (default: 0).\n"
             "\t-e <step>     : encoder step (default: 1).\n"
+            "\t-g <glitch>   : delay for msgs stabilisation X usec (default: 1000).\n"
             "\t-s <host>     : running pigpiod (default: " DEFAULT_PIGPIOD_HOST ").\n"
             "\t-p <port>     : of running pigpiod (default: " DEFAULT_PIGPIOD_PORT ").\n"
             "\t-n <jackname> : name of jack client (default: " DEFAULT_JACK_NAME ").\n"

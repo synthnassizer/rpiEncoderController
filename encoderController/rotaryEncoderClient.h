@@ -12,6 +12,8 @@
 #ifndef ROTARYENCODERCLIENT_H
 #define ROTARYENCODERCLIENT_H
 
+#define DEFAULT_STEADY_TIME (1000u) /* glitch */
+
 struct _rec_s;
 
 typedef struct _rec_s rec_t;
@@ -32,7 +34,7 @@ extern void recPigpioDisconnect(int pi);
 
 /** @brief Initialise encoder */
 extern rec_t * recInit(int pi, const encoderPinout_t * const encPins, /* BCM pin numbers*/
-    const unsigned encoderId, const int step, recCb_t cbFnEncoder, recCb_t cbFnButton);
+    const unsigned encoderId, const int step, const unsigned glitch, recCb_t cbFnEncoder, recCb_t cbFnButton);
 
 /** @brief Reset encoder and free resources */
 extern void recReset(rec_t *renc);

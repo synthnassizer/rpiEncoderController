@@ -129,7 +129,7 @@ void recPigpioDisconnect(int pi)
 }
 
 extern rec_t *recInit(const int pi, const encoderPinout_t * const encPins,
-    const unsigned encoderId, const int step, recCb_t cbFnEncoder, recCb_t cbFnButton)
+    const unsigned encoderId, const int step, const unsigned glitch, recCb_t cbFnEncoder, recCb_t cbFnButton)
 {
    rec_t *self;
 
@@ -156,7 +156,7 @@ extern rec_t *recInit(const int pi, const encoderPinout_t * const encPins,
    set_pull_up_down(pi, self->encPins->gpioB, PI_PUD_UP);
    set_pull_up_down(pi, self->encPins->gpioButton, PI_PUD_UP);
 
-   self->glitch = 1000u;
+   self->glitch = glitch;
 
    set_glitch_filter(pi, self->encPins->gpioA, self->glitch);
    set_glitch_filter(pi, self->encPins->gpioB, self->glitch);
