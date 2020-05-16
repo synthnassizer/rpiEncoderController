@@ -94,8 +94,7 @@ static void _cbEncoder(
 
             if (self->cb)
             {
-                /* the minus reverses rotational direction */
-                (self->cb)( -inc * self->step, self->encId);
+                (self->cb)( inc * self->step, self->encId);
             }
         }
     }
