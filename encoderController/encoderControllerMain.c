@@ -69,6 +69,7 @@ static int parseArgs(const int argc, char **argv, uint8_t * encMidiCtrlCounter,
 
 /* variables */
 bool keepRunning = true;
+bool globalEncEnable = false;
 bool printToStdOut = false;
 encoderValue_t encMidiCtrlValue[ENCODER_CTRL_MAX_NUM] = {
     ENC_ENCODER_VALUE_INITIALIZER, ENC_ENCODER_VALUE_INITIALIZER, ENC_ENCODER_VALUE_INITIALIZER
@@ -109,11 +110,14 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    globalEncEnable = true;
+
     /* main loop */
     while (keepRunning) {
-        usleep(500u * 1000u);
+        usleep(500u * 1000u); //500msec
     }
 
+    globalEncEnable = false;
     shutdowns(encoder, piGpio, encMidiCtrlCounter);
 
     return 0;
@@ -287,27 +291,33 @@ static int sanityChecks(const uint8_t encMidiCtrlCounter, const uint8_t encMidiC
 
 static void callbackEncoder(int step, unsigned id)
 {
-    int16_t encVal = encMidiCtrlValue[id].encoder;
-    encVal += (int8_t)step;
+    if (globalEncEnable)
+    {
+        int16_t encVal = encMidiCtrlValue[id].encoder;
+        encVal += (int8_t)step;
 
-    if (encMidiCtrlValue[id].encoderHigh < encVal) encVal = encMidiCtrlValue[id].encoderHigh;
-    if (encMidiCtrlValue[id].encoderLow > encVal) encVal = encMidiCtrlValue[id].encoderLow;
+        if (encMidiCtrlValue[id].encoderHigh < encVal) encVal = encMidiCtrlValue[id].encoderHigh;
+        if (encMidiCtrlValue[id].encoderLow > encVal) encVal = encMidiCtrlValue[id].encoderLow;
 
-    encMidiCtrlValue[id].encoder = encVal;
-    jmocWriteMidiData(0x0, encMidiCtrl[id].encoder, encMidiCtrlValue[id].encoder);
+        encMidiCtrlValue[id].encoder = encVal;
+        jmocWriteMidiData(0x0, encMidiCtrl[id].encoder, encMidiCtrlValue[id].encoder);
 
-    if (printToStdOut)
-        printf("enc[%u]=%d (dir=%d)\n", encMidiCtrl[id].encoder, encMidiCtrlValue[id].encoder, step);
+        if (printToStdOut)
+            printf("enc[%u]=%d (dir=%d)\n", encMidiCtrl[id].encoder, encMidiCtrlValue[id].encoder, step);
+    }
 }
 
 static void callbackButton(int pressed, unsigned id)
 {
-    encMidiCtrlValue[id].button = (int8_t)pressed;
+    if (globalEncEnable)
+    {
+        encMidiCtrlValue[id].button = (int8_t)pressed;
 
-    jmocWriteMidiData(0x0,encMidiCtrl[id].button, encMidiCtrlValue[id].button);
+        jmocWriteMidiData(0x0,encMidiCtrl[id].button, encMidiCtrlValue[id].button);
 
-    if (printToStdOut)
-        printf("but[%u]=%d\n", encMidiCtrl[id].button, encMidiCtrlValue[id].button);
+        if (printToStdOut)
+            printf("but[%u]=%d\n", encMidiCtrl[id].button, encMidiCtrlValue[id].button);
+    }
 }
 
 static void triggerShutdown(int sig)
