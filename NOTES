@@ -101,3 +101,13 @@ encoderController:
 enc1: pins 15,13,11(button) - BCM 22,27,17
 enc2: pins 22,18,16(button) - BCM 25,24,23 #CAUTION not adjacent !!!
 enc3: pins 37,36,31(button) - BCM 26,16,06 #CAUTION not adjacent, not even on same side !!!
+
+typical midi msg to be assembled
+----------------
+CC (control change) msgs: 
+	"b0 68 63 : control change (channel 0): ctrl 104, value  99"
+	"b0 68 64 : control change (channel 0): ctrl 104, value 100"
+	0xb0 : control change midi event, at channel 0
+	0x68 : ctrl # (dec=104)
+	0x63 : value # (decimal=99) 
+

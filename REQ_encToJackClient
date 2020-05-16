@@ -23,12 +23,4 @@ operational reqs
 -the exec shall be started with some cli args
 -the exec shall be closed gracefully through a SIGTERM signal
 
-typical midi msg to be assembled
-----------------
-CC (control change) msgs: 
-	"b0 68 63 : control change (channel 0): ctrl 104, value  99"
-	"b0 68 64 : control change (channel 0): ctrl 104, value 100"
-	0xb0 : control change midi event, at channel 0
-	0x68 : ctrl # (dec=104)
-	0x63 : value # (decimal=99) 
 
