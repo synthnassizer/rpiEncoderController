@@ -41,6 +41,7 @@
 /* typedefs */
 typedef struct encoderControl_t
 {
+    uint8_t id;
     uint8_t encoder;
     uint8_t button;
 } encoderControl_t;
@@ -55,6 +56,7 @@ typedef struct encoderValue_t
 /* function forward declarations */
 static void callbackButton(int pressed, unsigned id);
 static void callbackEncoder(int pos, unsigned id);
+static void readMidiData(const uint8_t channel, const uint8_t controller, const int8_t value);
 static void triggerShutdown(int /*sig*/);
 static void print_usage();
 static void setupSignals();
@@ -144,6 +146,7 @@ static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
                 return -1;
             }
 
+            encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].id = (uint8_t)(*encMidiCtrlCounter);
             encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].encoder = (uint8_t)enc;
             encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].button = (uint8_t)but;
             ++(*encMidiCtrlCounter);
@@ -157,8 +160,7 @@ static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
                         return -1;
                     }
                 } else {
-                    print_usage();
-                    return -1;
+                    encMidiCtrlValue[*encMidiCtrlValueCounter % ENCODER_CTRL_MAX_NUM].encoderLow = (int8_t)lowLim;
                 }
             } else {
                 encMidiCtrlValue[*encMidiCtrlValueCounter % ENCODER_CTRL_MAX_NUM].encoderLow = (int8_t)lowLim;
@@ -217,7 +219,7 @@ static int inits(rec_t ** encoder, int * piGpio, const char * host, const char *
         return -1;
     }
 
-    if (0 != jmocInit(jackName)) {
+    if (0 != jmocInit(jackName, &readMidiData)) {
         fprintf(stderr,"ERROR: Failed to initialise jack client\n\n");
         return -1;
     }
@@ -320,6 +322,24 @@ static void callbackButton(int pressed, unsigned id)
     }
 }
 
+static void readMidiData(const uint8_t channel, const uint8_t controller, const int8_t value)
+{
+    (void) channel;
+    uint8_t id = 0;
+    while ((controller != encMidiCtrl[id].encoder) && (ENCODER_CTRL_MAX_NUM >= id))
+        id++;
+    
+    if (ENCODER_CTRL_MAX_NUM == id)
+    {
+        fprintf(stderr,"ERROR: Midi controller out of range 0-%d\n\n",ENCODER_CTRL_MAX_NUM);
+        return;
+    }
+    
+    encMidiCtrlValue[id].encoder = value;
+    if (printToStdOut)
+        printf("enc[%u]=%d (external)\n", encMidiCtrl[id].encoder, encMidiCtrlValue[id].encoder);
+}
+
 static void triggerShutdown(int sig)
 {
     (void)sig;
@@ -328,7 +348,7 @@ static void triggerShutdown(int sig)
 
 static void print_usage()
 {
-    printf( "Usage: encoderController -c <midi ctrl number> [-s host] [-p port] [-e step] [-t] [-h] [-n jackname] \n\n"
+    printf( "Usage: encoderController -c <midi ctrl number> [-a value] [-s host] [-p port] [-e step] [-t] [-h] [-n jackname] \n\n"
             "Desc:  The programs initialises reads input from 1-3 rotary encoders,\n"
             "       encapsulates the values to midi msgs (controller change - CC - specifically) and\n"
             "       registers itself as a jack midi readable (=with output port) client\n\n"
