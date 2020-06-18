@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 #include "rotaryEncoderClient.h"
-#include "jackMidiOutClient.h"
+#include "jackMidiClient.h"
 
 /* defines */
 #define DEFAULT_JACK_NAME "encoderController"

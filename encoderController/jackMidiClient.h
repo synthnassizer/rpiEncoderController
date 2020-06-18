@@ -14,9 +14,11 @@
 
 #define MIDI_MSG_QUEUE_SIZE 100u
 
+typedef void (*jmocReadMidiCallback)(const uint8_t channel, const uint8_t controller, const int8_t value);
+
 /** @brief inits jack midi out client
  *  @return 0 on success
  */
-int jmocInit(const char * name);
+int jmocInit(const char * name, jmocReadMidiCallback cbFn);
 void jmocReset();
 void jmocWriteMidiData(const uint8_t channel, const uint8_t controller, const int8_t value);

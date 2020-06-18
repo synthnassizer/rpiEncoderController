@@ -11,8 +11,8 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O2")
 
 add_executable(encoderController
     encoderControllerMain.c
-    jackMidiOutClient.c
-    jackMidiOutClient.h
+    jackMidiClient.c
+    jackMidiClient.h
     rotaryEncoderClient.c
     rotaryEncoderClient.h
 )
