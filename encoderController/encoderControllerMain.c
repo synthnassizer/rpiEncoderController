@@ -41,7 +41,6 @@
 /* typedefs */
 typedef struct encoderControl_t
 {
-    uint8_t id;
     uint8_t encoder;
     uint8_t button;
 } encoderControl_t;
@@ -146,7 +145,6 @@ static int parseArgs(const int argc, char ** argv, uint8_t * encMidiCtrlCounter,
                 return -1;
             }
 
-            encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].id = (uint8_t)(*encMidiCtrlCounter);
             encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].encoder = (uint8_t)enc;
             encMidiCtrl[*encMidiCtrlCounter % ENCODER_CTRL_MAX_NUM].button = (uint8_t)but;
             ++(*encMidiCtrlCounter);
